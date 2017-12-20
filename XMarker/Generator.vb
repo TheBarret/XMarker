@@ -107,8 +107,8 @@ Public Class Generator
         Dim current As Color = bm.GetPixel(x, y), value As Bit = Nothing
         Select Case c
             Case Channel.R : value = Generator.ToBits(current.R).ElementAt(p)
-            Case Channel.G : value = Generator.ToBits(current.R).ElementAt(p)
-            Case Channel.B : value = Generator.ToBits(current.R).ElementAt(p)
+            Case Channel.G : value = Generator.ToBits(current.G).ElementAt(p)
+            Case Channel.B : value = Generator.ToBits(current.B).ElementAt(p)
         End Select
         Return value
     End Function
