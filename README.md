@@ -1,2 +1,2 @@
 # XMarker
-A little stenography project
+Steganography - Hiding information in images
