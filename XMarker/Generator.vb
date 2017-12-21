@@ -144,12 +144,6 @@ Public Class Generator
         Next
         Return buffer
     End Function
-    Private Shared Function Length(bm As Bitmap) As Integer
-        Return bm.Width * bm.Height * [Enum].GetValues(GetType(Position)).Length * [Enum].GetValues(GetType(Channel)).Length
-    End Function
-    Private Shared Function IsReadable(value As Char) As Boolean
-        Return Strings.AscW(value) >= 32 AndAlso Strings.AscW(value) <= 126 Or value = Chr(10) Or value = Chr(13)
-    End Function
     Private Shared Function ToByte(Stream As IEnumerable(Of Bit)) As Byte
         Dim value As String = String.Empty
         For Each Bit As Bit In Stream
@@ -159,7 +153,14 @@ Public Class Generator
                 value &= 1
             End If
         Next
+        If (Not value.Length = Bit.Length) Then Return 0
         Return Convert.ToByte(value, 2)
+    End Function
+    Private Shared Function Length(bm As Bitmap) As Integer
+        Return bm.Width * bm.Height * [Enum].GetValues(GetType(Position)).Length * [Enum].GetValues(GetType(Channel)).Length
+    End Function
+    Private Shared Function IsReadable(value As Char) As Boolean
+        Return Strings.AscW(value) >= &H20 AndAlso Strings.AscW(value) <= &H7E Or value = Chr(&HA) Or value = Chr(&HD)
     End Function
     Public Shared ReadOnly Property Positions As Array
         Get
