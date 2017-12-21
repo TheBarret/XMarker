@@ -10,7 +10,7 @@ Public Class Generator
         Dim index As Integer = 0, buffer As New StringBuilder, value As String
         Do
             value = Generator.Consume(collection, 8)
-            If (Strings.AscW(value) >= 32 AndAlso Strings.AscW(value) <= 126 Or value = Chr(10) Or value = Chr(13)) Then
+            If (Generator.IsReadable(value)) Then
                 buffer.Append(value)
                 index += 7
                 Continue Do
@@ -21,9 +21,9 @@ Public Class Generator
     End Function
     Private Shared Function Write(bm As Bitmap, message As String) As Bitmap
         Dim length As Integer = 0, offset As Integer = 0, dst As IEnumerable(Of Bit) = Nothing, src As IEnumerable(Of Bit) = Generator.ToBits(message)
-        If (bm.Width * bm.Height * [Enum].GetValues(GetType(Position)).Length * [Enum].GetValues(GetType(Channel)).Length >= src.Count) Then
-            For Each p As Position In [Enum].GetValues(GetType(Position))
-                For Each c As Channel In [Enum].GetValues(GetType(Channel))
+        If (Generator.Length(bm) >= src.Count) Then
+            For Each p As Position In Generator.Positions
+                For Each c As Channel In Generator.Channels
                     For y As Integer = 0 To bm.Height - 1
                         length = Generator.Read(src, dst, offset, bm.Width)
                         If (length > 0) Then
@@ -88,8 +88,8 @@ Public Class Generator
     End Function
     Private Shared Function Read(bm As Bitmap) As IEnumerable(Of Integer)
         Dim collection As New List(Of Integer)
-        For Each p As Position In [Enum].GetValues(GetType(Position))
-            For Each c As Channel In [Enum].GetValues(GetType(Channel))
+        For Each p As Position In Generator.Positions
+            For Each c As Channel In Generator.Channels
                 For y As Integer = 0 To bm.Height - 1
                     For x As Integer = 0 To bm.Width - 1
                         If (Generator.Read(bm, p, c, x, y).Value = BitValue.Zero) Then
@@ -144,6 +144,22 @@ Public Class Generator
         Next
         Return buffer
     End Function
+    Private Shared Function Length(bm As Bitmap) As Integer
+        Return bm.Width * bm.Height * [Enum].GetValues(GetType(Position)).Length * [Enum].GetValues(GetType(Channel)).Length
+    End Function
+    Private Shared Function IsReadable(value As Char) As Boolean
+        Return Strings.AscW(value) >= 32 AndAlso Strings.AscW(value) <= 126 Or value = Chr(10) Or value = Chr(13)
+    End Function
+    Public Shared ReadOnly Property Positions As Array
+        Get
+            Return [Enum].GetValues(GetType(Position))
+        End Get
+    End Property
+    Public Shared ReadOnly Property Channels As Array
+        Get
+            Return [Enum].GetValues(GetType(Channel))
+        End Get
+    End Property
     Private Shared Function ToByte(Stream As IEnumerable(Of Bit)) As Byte
         Dim value As String = String.Empty
         For Each Bit As Bit In Stream
