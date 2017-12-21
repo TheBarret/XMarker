@@ -2,6 +2,7 @@
 Imports System.Drawing
 
 Public Class Generator
+#Region "Public"
     Public Function Embed(bm As Bitmap, Message As String) As Bitmap
         Return Generator.Write(bm, Message)
     End Function
@@ -19,8 +20,10 @@ Public Class Generator
         Loop Until index >= collection.Count - 1
         Return buffer.ToString
     End Function
+#End Region
+#Region "Private"
     Private Shared Function Write(bm As Bitmap, message As String) As Bitmap
-        Dim length As Integer = 0, offset As Integer = 0, dst As IEnumerable(Of Bit) = Nothing, src As IEnumerable(Of Bit) = Generator.ToBits(message)
+        Dim length As Integer = 0, offset As Integer = 0, dst As BitStream = Nothing, src As BitStream = Generator.ToBits(message)
         If (Generator.Length(bm) >= src.Count) Then
             For Each p As Position In Generator.Positions
                 For Each c As Channel In Generator.Channels
@@ -42,7 +45,7 @@ Public Class Generator
         Throw New Exception("message too long for this image to store")
     End Function
     Private Shared Sub Write(bm As Bitmap, x As Integer, y As Integer, c As Channel, p As Position, bit As BitValue)
-        Dim result As IEnumerable(Of Bit) = Nothing, pixel As Color = bm.GetPixel(x, y)
+        Dim result As BitStream = Nothing, pixel As Color = bm.GetPixel(x, y)
         Select Case c
             Case Channel.R
                 result = Generator.ToBits(pixel.R)
@@ -58,8 +61,8 @@ Public Class Generator
                 bm.SetPixel(x, y, Color.FromArgb(pixel.R, pixel.G, Generator.ToByte(result)))
         End Select
     End Sub
-    Private Shared Function Read(src As IEnumerable(Of Bit), ByRef dst As IEnumerable(Of Bit), offset As Integer, len As Integer) As Integer
-        Dim result As New List(Of Bit)
+    Private Shared Function Read(src As BitStream, ByRef dst As BitStream, offset As Integer, len As Integer) As Integer
+        Dim result As New BitStream
         If (offset >= 0 AndAlso (offset + len - 1) <= src.Count - 1) Then
             For i As Integer = offset To offset + len - 1
                 result.Add(src.ElementAt(i))
@@ -120,8 +123,8 @@ Public Class Generator
         End If
         Return value
     End Function
-    Private Shared Function ToBits(Value As Byte) As IEnumerable(Of Bit)
-        Dim buffer As New List(Of Bit)
+    Private Shared Function ToBits(Value As Byte) As BitStream
+        Dim buffer As New BitStream
         For Each x As Char In Convert.ToString(Value, 2).PadLeft(Bit.Length, "0"c).ToCharArray
             If (x = "0"c) Then
                 buffer.Add(New Bit(BitValue.Zero))
@@ -131,8 +134,8 @@ Public Class Generator
         Next
         Return buffer
     End Function
-    Private Shared Function ToBits(Value As String) As IEnumerable(Of Bit)
-        Dim buffer As New List(Of Bit)
+    Private Shared Function ToBits(Value As String) As BitStream
+        Dim buffer As New BitStream
         For Each x As Char In Value.ToCharArray
             For Each y As Char In Convert.ToString(Strings.AscW(x), 2).PadLeft(Bit.Length, "0"c).ToCharArray
                 If (y = "0"c) Then
@@ -144,7 +147,7 @@ Public Class Generator
         Next
         Return buffer
     End Function
-    Private Shared Function ToByte(Stream As IEnumerable(Of Bit)) As Byte
+    Private Shared Function ToByte(Stream As BitStream) As Byte
         Dim value As String = String.Empty
         For Each Bit As Bit In Stream
             If (Bit.Value = BitValue.Zero) Then
@@ -162,6 +165,8 @@ Public Class Generator
     Private Shared Function IsReadable(value As Char) As Boolean
         Return Strings.AscW(value) >= &H20 AndAlso Strings.AscW(value) <= &H7E Or value = Chr(&HA) Or value = Chr(&HD)
     End Function
+#End Region
+#Region "Properties"
     Public Shared ReadOnly Property Positions As Array
         Get
             Return [Enum].GetValues(GetType(Position))
@@ -172,4 +177,5 @@ Public Class Generator
             Return [Enum].GetValues(GetType(Channel))
         End Get
     End Property
+#End Region
 End Class
