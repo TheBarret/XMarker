@@ -7,7 +7,7 @@ Public Class Generator
         Return Generator.Write(bm, Message)
     End Function
     Public Function Resolve(bm As Bitmap) As String
-        Dim collection As List(Of Integer) = Generator.Read(bm)
+        Dim collection As List(Of Byte) = Generator.Read(bm)
         Dim index As Integer = 0, buffer As New StringBuilder, value As String
         Do
             value = Generator.Consume(collection, Bit.Length)
@@ -89,8 +89,8 @@ Public Class Generator
         dst = result
         Return result.Count
     End Function
-    Private Shared Function Read(bm As Bitmap) As IEnumerable(Of Integer)
-        Dim collection As New List(Of Integer)
+    Private Shared Function Read(bm As Bitmap) As IEnumerable(Of Byte)
+        Dim collection As New List(Of Byte)
         For Each p As Position In Generator.Positions
             For Each c As Channel In Generator.Channels
                 For y As Integer = 0 To bm.Height - 1
@@ -115,7 +115,7 @@ Public Class Generator
         End Select
         Return value
     End Function
-    Private Shared Function Consume(collection As List(Of Integer), length As Integer) As String
+    Private Shared Function Consume(collection As List(Of Byte), length As Integer) As String
         Dim value As String = String.Empty
         If (length < collection.Count - length) Then
             value = Strings.ChrW(Convert.ToByte(String.Concat(collection.Take(length)), 2))
