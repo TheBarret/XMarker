@@ -9,10 +9,10 @@ Public Class Generator
         Dim collection As List(Of Integer) = Generator.Read(bm)
         Dim index As Integer = 0, buffer As New StringBuilder, value As String
         Do
-            value = Generator.Consume(collection, 8)
+            value = Generator.Consume(collection, Bit.Length)
             If (Generator.IsReadable(value)) Then
                 buffer.Append(value)
-                index += 7
+                index += Bit.Length - 1
                 Continue Do
             End If
             Exit Do
@@ -122,7 +122,7 @@ Public Class Generator
     End Function
     Private Shared Function ToBits(Value As Byte) As IEnumerable(Of Bit)
         Dim buffer As New List(Of Bit)
-        For Each x As Char In Convert.ToString(Value, 2).PadLeft(8, "0"c).ToCharArray
+        For Each x As Char In Convert.ToString(Value, 2).PadLeft(Bit.Length, "0"c).ToCharArray
             If (x = "0"c) Then
                 buffer.Add(New Bit(BitValue.Zero))
             Else
@@ -134,7 +134,7 @@ Public Class Generator
     Private Shared Function ToBits(Value As String) As IEnumerable(Of Bit)
         Dim buffer As New List(Of Bit)
         For Each x As Char In Value.ToCharArray
-            For Each y As Char In Convert.ToString(Strings.AscW(x), 2).PadLeft(8, "0"c).ToCharArray
+            For Each y As Char In Convert.ToString(Strings.AscW(x), 2).PadLeft(Bit.Length, "0"c).ToCharArray
                 If (y = "0"c) Then
                     buffer.Add(New Bit(BitValue.Zero))
                 Else
