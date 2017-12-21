@@ -7,17 +7,17 @@ Public Class Generator
         Return Generator.Write(bm, Message)
     End Function
     Public Function Resolve(bm As Bitmap) As String
-        Dim collection As List(Of Byte) = Generator.Read(bm)
+        Dim src As List(Of Byte) = Generator.Read(bm)
         Dim index As Integer = 0, buffer As New StringBuilder, value As String
         Do
-            value = Generator.Consume(collection, Bit.Length)
+            value = Generator.Consume(src, Bit.Length)
             If (Generator.IsReadable(value)) Then
                 buffer.Append(value)
                 index += Bit.Length - 1
                 Continue Do
             End If
             Exit Do
-        Loop Until index >= collection.Count - 1
+        Loop Until index >= src.Count - 1
         Return buffer.ToString
     End Function
 #End Region
@@ -25,7 +25,7 @@ Public Class Generator
     Private Shared Function Write(bm As Bitmap, message As String) As Bitmap
         Dim length As Integer = 0, offset As Integer = 0, dst As BitStream = Nothing, src As BitStream = Generator.ToBits(message)
         If (Generator.Length(bm) >= src.Count) Then
-            For Each p As Position In Generator.Positions
+            For Each p As BitPosition In Generator.Positions
                 For Each c As Channel In Generator.Channels
                     For y As Integer = 0 To bm.Height - 1
                         length = Generator.Read(src, dst, offset, bm.Width)
@@ -44,7 +44,7 @@ Public Class Generator
         End If
         Throw New Exception("message too long for this image to store")
     End Function
-    Private Shared Sub Write(bm As Bitmap, x As Integer, y As Integer, c As Channel, p As Position, bit As BitValue)
+    Private Shared Sub Write(bm As Bitmap, x As Integer, y As Integer, c As Channel, p As BitPosition, bit As BitValue)
         Dim result As BitStream = Nothing, pixel As Color = bm.GetPixel(x, y)
         Select Case c
             Case Channel.R
@@ -91,7 +91,7 @@ Public Class Generator
     End Function
     Private Shared Function Read(bm As Bitmap) As IEnumerable(Of Byte)
         Dim collection As New List(Of Byte)
-        For Each p As Position In Generator.Positions
+        For Each p As BitPosition In Generator.Positions
             For Each c As Channel In Generator.Channels
                 For y As Integer = 0 To bm.Height - 1
                     For x As Integer = 0 To bm.Width - 1
@@ -106,7 +106,7 @@ Public Class Generator
         Next
         Return collection
     End Function
-    Private Shared Function Read(bm As Bitmap, p As Position, c As Channel, x As Integer, y As Integer) As Bit
+    Private Shared Function Read(bm As Bitmap, p As BitPosition, c As Channel, x As Integer, y As Integer) As Bit
         Dim current As Color = bm.GetPixel(x, y), value As Bit = Nothing
         Select Case c
             Case Channel.R : value = Generator.ToBits(current.R).ElementAt(p)
@@ -115,11 +115,11 @@ Public Class Generator
         End Select
         Return value
     End Function
-    Private Shared Function Consume(collection As List(Of Byte), length As Integer) As String
+    Private Shared Function Consume(src As List(Of Byte), length As Integer) As String
         Dim value As String = String.Empty
-        If (length < collection.Count - length) Then
-            value = Strings.ChrW(Convert.ToByte(String.Concat(collection.Take(length)), 2))
-            collection.RemoveRange(0, length)
+        If (length < src.Count - length) Then
+            value = Strings.ChrW(Convert.ToByte(String.Concat(src.Take(length)), 2))
+            src.RemoveRange(0, length)
         End If
         Return value
     End Function
@@ -160,7 +160,7 @@ Public Class Generator
         Return Convert.ToByte(value, 2)
     End Function
     Private Shared Function Length(bm As Bitmap) As Integer
-        Return bm.Width * bm.Height * [Enum].GetValues(GetType(Position)).Length * [Enum].GetValues(GetType(Channel)).Length
+        Return bm.Width * bm.Height * [Enum].GetValues(GetType(BitPosition)).Length * [Enum].GetValues(GetType(Channel)).Length
     End Function
     Private Shared Function IsReadable(value As Char) As Boolean
         Return Strings.AscW(value) >= &H20 AndAlso Strings.AscW(value) <= &H7E Or value = Chr(&HA) Or value = Chr(&HD)
@@ -169,7 +169,7 @@ Public Class Generator
 #Region "Properties"
     Public Shared ReadOnly Property Positions As Array
         Get
-            Return [Enum].GetValues(GetType(Position))
+            Return [Enum].GetValues(GetType(BitPosition))
         End Get
     End Property
     Public Shared ReadOnly Property Channels As Array
