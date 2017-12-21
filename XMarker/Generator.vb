@@ -28,7 +28,7 @@ Public Class Generator
                         length = Generator.Read(src, dst, offset, bm.Width)
                         If (length > 0) Then
                             For x As Integer = 0 To dst.Count - 1
-                                Generator.Write(bm, x, y, Channel.R, p, dst.ElementAt(x).Value)
+                                Generator.Write(bm, x, y, c, p, dst.ElementAt(x).Value)
                             Next
                             offset += length
                             length = 0
@@ -150,16 +150,6 @@ Public Class Generator
     Private Shared Function IsReadable(value As Char) As Boolean
         Return Strings.AscW(value) >= 32 AndAlso Strings.AscW(value) <= 126 Or value = Chr(10) Or value = Chr(13)
     End Function
-    Public Shared ReadOnly Property Positions As Array
-        Get
-            Return [Enum].GetValues(GetType(Position))
-        End Get
-    End Property
-    Public Shared ReadOnly Property Channels As Array
-        Get
-            Return [Enum].GetValues(GetType(Channel))
-        End Get
-    End Property
     Private Shared Function ToByte(Stream As IEnumerable(Of Bit)) As Byte
         Dim value As String = String.Empty
         For Each Bit As Bit In Stream
@@ -171,4 +161,14 @@ Public Class Generator
         Next
         Return Convert.ToByte(value, 2)
     End Function
+    Public Shared ReadOnly Property Positions As Array
+        Get
+            Return [Enum].GetValues(GetType(Position))
+        End Get
+    End Property
+    Public Shared ReadOnly Property Channels As Array
+        Get
+            Return [Enum].GetValues(GetType(Channel))
+        End Get
+    End Property
 End Class
